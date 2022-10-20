@@ -1,0 +1,28 @@
+{
+  "name": "linkedin-scrapper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/chance": "^1.1.0",
+    "@types/fs-extra": "^9.0.4",
+    "@types/node": "^14.14.10",
+    "@types/puppeteer": "^5.4.0",
+    "axios": "^0.21.0",
+    "chance": "^1.1.7",
+    "fs-extra": "^9.0.1",
+    "ghost-cursor": "^1.0.6",
+    "puppeteer": "^5.5.0",
+    "tor-control": "0.0.3",
+    "ts-node": "^9.0.0",
+    "uuid": "^8.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.1.2"
+  }
+}
