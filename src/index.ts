@@ -55,7 +55,7 @@ const loginToLinkedin = async (email: string, password: string) => {
       waitUntil: "domcontentloaded",
     });
 
-    await delayExecution(10000);
+    await delayExecution(15000);
 
     // check of the feature card is available or not
     const featureCard = await profilePage.$(".pvs-carousel");
@@ -75,7 +75,7 @@ const loginToLinkedin = async (email: string, password: string) => {
 
     // click the contact info button
     await profilePage.click("#top-card-text-details-contact-info", { delay: delay_time() });
-    await delayExecution(1000);
+    await delayExecution(5000);
 
     // get the contact info email
     const contactEmail = await profilePage.evaluate(() => {
@@ -101,7 +101,7 @@ const loginToLinkedin = async (email: string, password: string) => {
     await profilePage.goto(experienceURL, {
       waitUntil: "domcontentloaded",
     });
-    await delayExecution(10000);
+    await delayExecution(15000);
 
     // get the experience
     const experiences = await profilePage.evaluate(() => {
