@@ -1,5 +1,7 @@
 import puppeteer from "puppeteer";
 import { delayExecution, delay_time } from "./utils";
+import dotenv from "dotenv";
+dotenv.config();
 
 const LINKEDIN_LOGIN_PAGE = "https://www.linkedin.com/login";
 let LINKEDIN_PROFILE_PAGES: string[] = [];
@@ -134,17 +136,17 @@ const loginToLinkedin = async (email: string, password: string) => {
       websiteUrl,
       experiences,
     };
-    
+
     // convert to json and save to the file
     const fs = require("fs");
     // create data.json if not exit
     if (!fs.existsSync("data.json")) {
       fs.writeFileSync("data.json", JSON.stringify([]));
     }
-    
+
     // read the old data if any and append the new data
     const oldData = fs.readFileSync("data.json", "utf8");
-    if(!oldData) {
+    if (!oldData) {
       fs.writeFileSync("data.json", JSON.stringify([data]));
     } else {
       const newData = JSON.parse(oldData);
@@ -163,7 +165,17 @@ const loginToLinkedin = async (email: string, password: string) => {
   let keep_running = true;
   while (keep_running) {
     try {
-      await loginToLinkedin("viralstoriesofficial@gmail.com", "Suvam@1");
+      console.log("starting the script");
+      const email = process.env.EMAIL;
+      const password = process.env.PASSWORD;
+
+      if (!email || !password) {
+        throw new Error("email or password not found. Add the email and password in the .env file");
+      }
+      console.log("email -->", email);
+      console.log("password -->", password);
+      return;
+      // await loginToLinkedin(email, password);
     } catch (error) {
       console.log(error, "ERROR");
       keep_running = false;
