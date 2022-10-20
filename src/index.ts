@@ -1,6 +1,6 @@
+import dotenv from "dotenv";
 import puppeteer from "puppeteer";
 import { delayExecution, delay_time } from "./utils";
-import dotenv from "dotenv";
 dotenv.config();
 
 const LINKEDIN_LOGIN_PAGE = "https://www.linkedin.com/login";
@@ -41,7 +41,6 @@ const loginToLinkedin = async (email: string, password: string) => {
 
   // click the login button
   await page.click(".login__form_action_container > button", { delay: delay_time() });
-  console.log("login button clicked");
 
   // wait for the feed page
   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
@@ -55,37 +54,30 @@ const loginToLinkedin = async (email: string, password: string) => {
     await profilePage.goto(profilePageLink, {
       waitUntil: "domcontentloaded",
     });
-    console.log("profile page loaded");
+
     await delayExecution(10000);
 
     // check of the feature card is available or not
-    console.log("checking for the feature card");
     const featureCard = await profilePage.$(".pvs-carousel");
     let descriptionIndex = 0;
     if (featureCard) {
-      console.log("feature card found");
       // there is a feature card
       descriptionIndex = 3;
     } else {
-      console.log("feature card not found");
       // there is no feature card
       descriptionIndex = 0;
     }
 
     // get the description
-    console.log("getting the description");
     const description = await profilePage.evaluate((descriptionIndex) => {
       return document.querySelectorAll(".pv-shared-text-with-see-more")[descriptionIndex].querySelector(".inline-show-more-text span.visually-hidden")?.textContent;
     }, descriptionIndex);
-    console.log("description -->", description);
 
     // click the contact info button
-    console.log("clicking the contact info button");
     await profilePage.click("#top-card-text-details-contact-info", { delay: delay_time() });
     await delayExecution(1000);
 
     // get the contact info email
-    console.log("getting the contact info email");
     const contactEmail = await profilePage.evaluate(() => {
       const emailID = document.querySelector(".ci-email > div > a")?.getAttribute("href");
       if (emailID) {
@@ -95,20 +87,16 @@ const loginToLinkedin = async (email: string, password: string) => {
         return null;
       }
     });
-    console.log("contact email -->", contactEmail);
 
     // get the contact info website
     const websiteUrl = await profilePage.evaluate(() => {
       const website = document.querySelector(".ci-websites > ul > li > a")?.getAttribute("href");
       return website;
     });
-    console.log("website url -->", websiteUrl);
 
     // extract the the experience
-    console.log("extracting the experience");
     // open the experience page
     const userID = profilePageLink.split("/")[4];
-    console.log("userID -->", userID);
     const experienceURL = `https://www.linkedin.com/in/${userID}/details/experience/`;
     await profilePage.goto(experienceURL, {
       waitUntil: "domcontentloaded",
@@ -127,7 +115,6 @@ const loginToLinkedin = async (email: string, password: string) => {
       });
       return experienceList.join(" | ");
     });
-    console.log("experiences -->", experiences);
 
     // prepare the JSON data
     const data = {
