@@ -159,14 +159,11 @@ const loginToLinkedin = async (email: string, password: string) => {
       if (!email || !password) {
         throw new Error("email or password not found. Add the email and password in the .env file");
       }
-      console.log("email -->", email);
-      console.log("password -->", password);
-      return;
-      // await loginToLinkedin(email, password);
+
+      await loginToLinkedin(email, password);
     } catch (error) {
-      console.log(error, "ERROR");
+      console.error(error, "ERROR");
       keep_running = false;
-      // console.log(error);
     }
   }
 })();
