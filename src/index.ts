@@ -1,3 +1,34 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2020 Prasenjeet Symon
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * @author Prasenjeet Symon
+ * @license MIT
+ * @version 1.0.0
+ * @description linkedin scrapper
+ * @link https://github.com/prasenjeet-symon/linkedin-crawler
+ *
+ */
+
 import dotenv from "dotenv";
 import puppeteer from "puppeteer";
 import { delayExecution, delay_time } from "./utils";
@@ -6,78 +37,87 @@ dotenv.config();
 const LINKEDIN_LOGIN_PAGE = "https://www.linkedin.com/login";
 let LINKEDIN_PROFILE_PAGES: string[] = [];
 
-// linkedin scrapper v1.0.0
-
-const loginToLinkedin = async (email: string, password: string) => {
-  // load the URLS using require
+const runCrawler = async (email: string, password: string) => {
   LINKEDIN_PROFILE_PAGES = require("./URLS.json");
 
   const browser = await puppeteer.launch({
     headless: false,
-    // args: ["--proxy-server=socks5://127.0.0.1:9050"], // for the tor network
+    // args: ["--proxy-server=socks5://127.0.0.1:9050"], // connect to TOR
   });
 
+  /************************************************************ */
   const incognitoB = await browser.createIncognitoBrowserContext();
   const page = await incognitoB.newPage();
   page.setDefaultNavigationTimeout(0);
   await page.goto(LINKEDIN_LOGIN_PAGE, {
     waitUntil: "domcontentloaded",
   });
-
+  /************************************************************ */
+  /************************************************************ */
   await page.waitForSelector(".form__input--floating");
   await page.waitForSelector("#username");
   await page.waitForSelector("#password");
   await page.waitForSelector(".login__form_action_container > button");
-
-  // fill the email id
+  /************************************************************ */
+  /************************************************************ */
   await page.focus("#username");
   await page.keyboard.type(email, { delay: delay_time() });
-
-  // fill the password
+  /************************************************************ */
+  /************************************************************ */
   await page.focus("#password");
   await page.keyboard.type(password, { delay: delay_time() });
-
-  await delayExecution(delay_time());
-
-  // click the login button
+  /************************************************************ */
+  /************************************************************ */
   await page.click(".login__form_action_container > button", { delay: delay_time() });
-
-  // wait for the feed page
   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
-
+  await delayExecution(5000);
+  /************************************************************ */
+  /************************************************************ */
   for (const profilePageLink of LINKEDIN_PROFILE_PAGES) {
-    console.log("profile -->", profilePageLink);
-
+    console.log("\x1b[36m%s\x1b[0m", `Processing ${profilePageLink}`);
+    /************************************************************ */
     const profilePage = await incognitoB.newPage();
     profilePage.setDefaultNavigationTimeout(0);
-
     await profilePage.goto(profilePageLink, {
       waitUntil: "domcontentloaded",
     });
-
+    /************************************************************ */
     await delayExecution(15000);
-
-    // check of the feature card is available or not
+    /************************************************************ */
+    /************************************************************ */
     const featureCard = await profilePage.$(".pvs-carousel");
     let descriptionIndex = 0;
     if (featureCard) {
-      // there is a feature card
       descriptionIndex = 3;
     } else {
-      // there is no feature card
       descriptionIndex = 0;
     }
-
-    // get the description
+    /************************************************************ */
+    /************************************************************ */
     const description = await profilePage.evaluate((descriptionIndex) => {
       return document.querySelectorAll(".pv-shared-text-with-see-more")[descriptionIndex].querySelector(".inline-show-more-text span.visually-hidden")?.textContent;
     }, descriptionIndex);
-
-    // click the contact info button
+    /************************************************************ */
+    /************************************************************ */
+    const fullName = await profilePage.evaluate(() => {
+      return document.querySelector(".pv-text-details__left-panel > div:nth-of-type(1) > h1")?.textContent?.trim();
+    });
+    /************************************************************ */
+    /************************************************************ */
+    const address = await profilePage.evaluate(() => {
+      const nodes = document.querySelectorAll(".pv-text-details__left-panel");
+      if (nodes.length > 0 && nodes.length === 2) {
+        return nodes[1].querySelector("span:nth-of-type(1)")?.textContent?.trim();
+      } else {
+        return "";
+      }
+    });
+    /************************************************************ */
+    /************************************************************ */
     await profilePage.click("#top-card-text-details-contact-info", { delay: delay_time() });
     await delayExecution(5000);
-
-    // get the contact info email
+    /************************************************************ */
+    /************************************************************ */
     const contactEmail = await profilePage.evaluate(() => {
       const emailID = document.querySelector(".ci-email > div > a")?.getAttribute("href");
       if (emailID) {
@@ -87,23 +127,22 @@ const loginToLinkedin = async (email: string, password: string) => {
         return null;
       }
     });
-
-    // get the contact info website
+    /************************************************************ */
+    /************************************************************ */
     const websiteUrl = await profilePage.evaluate(() => {
       const website = document.querySelector(".ci-websites > ul > li > a")?.getAttribute("href");
       return website;
     });
-
-    // extract the the experience
-    // open the experience page
+    /************************************************************ */
+    /************************************************************ */
     const userID = profilePageLink.split("/")[4];
     const experienceURL = `https://www.linkedin.com/in/${userID}/details/experience/`;
     await profilePage.goto(experienceURL, {
       waitUntil: "domcontentloaded",
     });
     await delayExecution(15000);
-
-    // get the experience
+    /************************************************************ */
+    /************************************************************ */
     const experiences = await profilePage.evaluate(() => {
       const experienceListNodesMain = document.querySelectorAll(".pvs-list__container ul  li  div > div:nth-of-type(1) > div:nth-of-type(1) > div > span > span:nth-of-type(1)");
       if (experienceListNodesMain.length === 0) return "";
@@ -113,25 +152,25 @@ const loginToLinkedin = async (email: string, password: string) => {
         const experience = experienceNode.textContent;
         experienceList.push(experience || "");
       });
-      return experienceList.join(" | ");
+      return experienceList.join(" / ");
     });
-
-    // prepare the JSON data
+    /************************************************************ */
+    /************************************************************ */
     const data = {
-      description,
-      contactEmail,
-      websiteUrl,
-      experiences,
+      id: 0,
+      name: fullName,
+      email: contactEmail,
+      website: websiteUrl,
+      city: address,
+      experience: experiences,
+      description: description,
     };
 
-    // convert to json and save to the file
     const fs = require("fs");
-    // create data.json if not exit
     if (!fs.existsSync("data.json")) {
       fs.writeFileSync("data.json", JSON.stringify([]));
     }
 
-    // read the old data if any and append the new data
     const oldData = fs.readFileSync("data.json", "utf8");
     if (!oldData) {
       fs.writeFileSync("data.json", JSON.stringify([data]));
@@ -140,30 +179,45 @@ const loginToLinkedin = async (email: string, password: string) => {
       newData.push(data);
       fs.writeFileSync("data.json", JSON.stringify(newData));
     }
-
-    // close the profile page
+    /************************************************************ */
+    /************************************************************ */
     await profilePage.close();
   }
+  /************************************************************ */
+  /************************************************************ */
+  const fs = require("fs");
+  const oldData = fs.readFileSync("data.json", "utf8");
+  if (!oldData) {
+    fs.writeFileSync("data.json", JSON.stringify([]));
+  } else {
+    const newData: any = JSON.parse(oldData);
+    newData.forEach((data: any, index: number) => {
+      data.id = index + 1;
+    });
+    fs.writeFileSync("data.json", JSON.stringify(newData));
+  }
 
-  throw new Error("completed");
+  await incognitoB.close();
+  await browser.close();
+  return;
 };
 
-(async () => {
-  let keep_running = true;
-  while (keep_running) {
-    try {
-      console.log("starting the script");
-      const email = process.env.EMAIL;
-      const password = process.env.PASSWORD;
-
-      if (!email || !password) {
-        throw new Error("email or password not found. Add the email and password in the .env file");
-      }
-
-      await loginToLinkedin(email, password);
-    } catch (error) {
-      console.error(error, "ERROR");
-      keep_running = false;
-    }
+// main function
+async function main() {
+  const email = process.env.EMAIL;
+  const password = process.env.PASSWORD;
+  if (!email || !password) {
+    throw new Error("email or password not found. Add the email and password in the .env file");
   }
-})();
+  await runCrawler(email, password);
+}
+
+main()
+  .then(() => {
+    console.log("\x1b[32m%s\x1b[0m", "Crawler completed successfully");
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
