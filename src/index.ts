@@ -75,113 +75,117 @@ const runCrawler = async (email: string, password: string) => {
   /************************************************************ */
   for (const profilePageLink of LINKEDIN_PROFILE_PAGES) {
     console.log("\x1b[36m%s\x1b[0m", `Processing ${profilePageLink}`);
-    /************************************************************ */
-    const profilePage = await incognitoB.newPage();
-    profilePage.setDefaultNavigationTimeout(0);
-    await profilePage.goto(profilePageLink, {
-      waitUntil: "domcontentloaded",
-    });
-    /************************************************************ */
-    await delayExecution(15000);
-    /************************************************************ */
-    /************************************************************ */
-    const featureCard = await profilePage.$(".pvs-carousel");
-    let descriptionIndex = 0;
-    if (featureCard) {
-      descriptionIndex = 3;
-    } else {
-      descriptionIndex = 0;
-    }
-    /************************************************************ */
-    /************************************************************ */
-    const description = await profilePage.evaluate((descriptionIndex) => {
-      return document.querySelectorAll(".pv-shared-text-with-see-more")[descriptionIndex].querySelector(".inline-show-more-text span.visually-hidden")?.textContent;
-    }, descriptionIndex);
-    /************************************************************ */
-    /************************************************************ */
-    const fullName = await profilePage.evaluate(() => {
-      return document.querySelector(".pv-text-details__left-panel > div:nth-of-type(1) > h1")?.textContent?.trim();
-    });
-    /************************************************************ */
-    /************************************************************ */
-    const address = await profilePage.evaluate(() => {
-      const nodes = document.querySelectorAll(".pv-text-details__left-panel");
-      if (nodes.length > 0 && nodes.length === 2) {
-        return nodes[1].querySelector("span:nth-of-type(1)")?.textContent?.trim();
-      } else {
-        return "";
-      }
-    });
-    /************************************************************ */
-    /************************************************************ */
-    await profilePage.click("#top-card-text-details-contact-info", { delay: delay_time() });
-    await delayExecution(5000);
-    /************************************************************ */
-    /************************************************************ */
-    const contactEmail = await profilePage.evaluate(() => {
-      const emailID = document.querySelector(".ci-email > div > a")?.getAttribute("href");
-      if (emailID) {
-        const email = emailID.split(":")[1];
-        return email;
-      } else {
-        return null;
-      }
-    });
-    /************************************************************ */
-    /************************************************************ */
-    const websiteUrl = await profilePage.evaluate(() => {
-      const website = document.querySelector(".ci-websites > ul > li > a")?.getAttribute("href");
-      return website;
-    });
-    /************************************************************ */
-    /************************************************************ */
-    const userID = profilePageLink.split("/")[4];
-    const experienceURL = `https://www.linkedin.com/in/${userID}/details/experience/`;
-    await profilePage.goto(experienceURL, {
-      waitUntil: "domcontentloaded",
-    });
-    await delayExecution(15000);
-    /************************************************************ */
-    /************************************************************ */
-    const experiences = await profilePage.evaluate(() => {
-      const experienceListNodesMain = document.querySelectorAll(".pvs-list__container ul  li  div > div:nth-of-type(1) > div:nth-of-type(1) > div > span > span:nth-of-type(1)");
-      if (experienceListNodesMain.length === 0) return "";
-      const experienceList: string[] = [];
-
-      experienceListNodesMain.forEach((experienceNode) => {
-        const experience = experienceNode.textContent;
-        experienceList.push(experience || "");
+    try {
+      /************************************************************ */
+      const profilePage = await incognitoB.newPage();
+      profilePage.setDefaultNavigationTimeout(0);
+      await profilePage.goto(profilePageLink, {
+        waitUntil: "domcontentloaded",
       });
-      return experienceList.join(" / ");
-    });
-    /************************************************************ */
-    /************************************************************ */
-    const data = {
-      id: 0,
-      name: fullName,
-      email: contactEmail,
-      website: websiteUrl,
-      city: address,
-      experience: experiences,
-      description: description,
-    };
+      /************************************************************ */
+      await delayExecution(15000);
+      /************************************************************ */
+      /************************************************************ */
+      const featureCard = await profilePage.$(".pvs-carousel");
+      let descriptionIndex = 0;
+      if (featureCard) {
+        descriptionIndex = 3;
+      } else {
+        descriptionIndex = 0;
+      }
+      /************************************************************ */
+      /************************************************************ */
+      const description = await profilePage.evaluate((descriptionIndex) => {
+        return document.querySelectorAll(".pv-shared-text-with-see-more")[descriptionIndex].querySelector(".inline-show-more-text span.visually-hidden")?.textContent;
+      }, descriptionIndex);
+      /************************************************************ */
+      /************************************************************ */
+      const fullName = await profilePage.evaluate(() => {
+        return document.querySelector(".pv-text-details__left-panel > div:nth-of-type(1) > h1")?.textContent?.trim();
+      });
+      /************************************************************ */
+      /************************************************************ */
+      const address = await profilePage.evaluate(() => {
+        const nodes = document.querySelectorAll(".pv-text-details__left-panel");
+        if (nodes.length > 0 && nodes.length === 2) {
+          return nodes[1].querySelector("span:nth-of-type(1)")?.textContent?.trim();
+        } else {
+          return "";
+        }
+      });
+      /************************************************************ */
+      /************************************************************ */
+      await profilePage.click("#top-card-text-details-contact-info", { delay: delay_time() });
+      await delayExecution(5000);
+      /************************************************************ */
+      /************************************************************ */
+      const contactEmail = await profilePage.evaluate(() => {
+        const emailID = document.querySelector(".ci-email > div > a")?.getAttribute("href");
+        if (emailID) {
+          const email = emailID.split(":")[1];
+          return email;
+        } else {
+          return null;
+        }
+      });
+      /************************************************************ */
+      /************************************************************ */
+      const websiteUrl = await profilePage.evaluate(() => {
+        const website = document.querySelector(".ci-websites > ul > li > a")?.getAttribute("href");
+        return website;
+      });
+      /************************************************************ */
+      /************************************************************ */
+      const userID = profilePageLink.split("/")[4];
+      const experienceURL = `https://www.linkedin.com/in/${userID}/details/experience/`;
+      await profilePage.goto(experienceURL, {
+        waitUntil: "domcontentloaded",
+      });
+      await delayExecution(15000);
+      /************************************************************ */
+      /************************************************************ */
+      const experiences = await profilePage.evaluate(() => {
+        const experienceListNodesMain = document.querySelectorAll(".pvs-list__container ul  li  div > div:nth-of-type(1) > div:nth-of-type(1) > div > span > span:nth-of-type(1)");
+        if (experienceListNodesMain.length === 0) return "";
+        const experienceList: string[] = [];
 
-    const fs = require("fs");
-    if (!fs.existsSync("data.json")) {
-      fs.writeFileSync("data.json", JSON.stringify([]));
-    }
+        experienceListNodesMain.forEach((experienceNode) => {
+          const experience = experienceNode.textContent;
+          experienceList.push(experience || "");
+        });
+        return experienceList.join(" / ");
+      });
+      /************************************************************ */
+      /************************************************************ */
+      const data = {
+        id: 0,
+        name: fullName,
+        email: contactEmail,
+        website: websiteUrl,
+        city: address,
+        experience: experiences,
+        description: description,
+      };
 
-    const oldData = fs.readFileSync("data.json", "utf8");
-    if (!oldData) {
-      fs.writeFileSync("data.json", JSON.stringify([data]));
-    } else {
-      const newData = JSON.parse(oldData);
-      newData.push(data);
-      fs.writeFileSync("data.json", JSON.stringify(newData));
+      const fs = require("fs");
+      if (!fs.existsSync("data.json")) {
+        fs.writeFileSync("data.json", JSON.stringify([]));
+      }
+
+      const oldData = fs.readFileSync("data.json", "utf8");
+      if (!oldData) {
+        fs.writeFileSync("data.json", JSON.stringify([data]));
+      } else {
+        const newData = JSON.parse(oldData);
+        newData.push(data);
+        fs.writeFileSync("data.json", JSON.stringify(newData));
+      }
+      /************************************************************ */
+      /************************************************************ */
+      await profilePage.close();
+    } catch (error) {
+      console.error("Error while processing ", profilePageLink);
     }
-    /************************************************************ */
-    /************************************************************ */
-    await profilePage.close();
   }
   /************************************************************ */
   /************************************************************ */
